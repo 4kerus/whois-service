@@ -2,39 +2,22 @@
 
 namespace App\Services;
 
+use App\Models\Tld;
 use Exception;
 
 class WhoisService
 {
-    private array $whoisServers = [
-        'com' => 'whois.verisign-grs.com',
-        'net' => 'whois.verisign-grs.com',
-        'org' => 'whois.pir.org',
-        'info' => 'whois.afilias.net',
-        'biz' => 'whois.nic.biz',
-        'io' => 'whois.nic.io',
-        'co' => 'whois.nic.co',
-        'ru' => 'whois.tcinet.ru',
-        'uk' => 'whois.nic.uk',
-        'de' => 'whois.denic.de',
-        'jp' => 'whois.jprs.jp',
-        'fr' => 'whois.nic.fr',
-        'au' => 'whois.auda.org.au',
-        'us' => 'whois.nic.us',
-        'cn' => 'whois.cnnic.cn',
-        'ca' => 'whois.cira.ca',
-    ];
-
     public function getWhoisData(string $domain): string
     {
         $parts = explode('.', $domain);
         $tld = end($parts);
 
-        if (!isset($this->whoisServers[$tld])) {
+        $tldModel = Tld::query()->where('tld', $tld)->first();
+        if (!$tldModel) {
             throw new \Exception("WHOIS сервер для зоны $tld не найден");
         }
 
-        $server = $this->whoisServers[$tld];
+        $server = $tldModel->whois_server;
 
         $whoisData = $this->queryWhoisServer($server, $domain);
 
